@@ -80,6 +80,7 @@ struct ARModelGalleryView: View {
         ToolbarItem(placement: .primaryAction) {
             Button(action: viewModel.importModel) {
                 Image(systemName: "plus")
+                    .font(.title2)
             }
         }
     }

@@ -19,51 +19,63 @@ struct ARViewContainer: UIViewRepresentable {
     
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
-        context.coordinator.arView = arView
         
-        // 禁用所有高级渲染特性
-        arView.renderOptions = [
-            .disablePersonOcclusion,
-            .disableDepthOfField,
-            .disableMotionBlur
-        ]
-        
-        // 基础配置
+        // 1. 先同步配置AR会话
         let config = ARWorldTrackingConfiguration()
         config.planeDetection = []
-        config.environmentTexturing = .none
-        config.isLightEstimationEnabled = false
+        arView.session.run(config)
         
-        // 异步加载模型
-        DispatchQueue.global(qos: .userInitiated).async {
+        // 2. 安全加载模型
+        loadModelAsync(arView: arView)
+        
+        return arView
+    }
+
+    private func loadModelAsync(arView: ARView) {
+        // 使用专门的内存队列处理资源加载
+        let modelLoadingQueue = DispatchQueue(label: "com.artimorph.modelLoading", qos: .userInitiated)
+        
+        modelLoadingQueue.async {
+            // 检查是否在模拟器环境
+            #if targetEnvironment(simulator)
+            DispatchQueue.main.async {
+                self.errorMessage = "模拟器不支持3D模型加载\n请使用真机体验AR功能"
+            }
+            return
+            #else
             do {
-                let entity = try Entity.load(contentsOf: self.modelURL)
+                // 3. 使用安全加载方式
+                let asset = try Entity.load(contentsOf: self.modelURL)
                 
-                // 强制使用简单材质
-                if let modelEntity = entity as? ModelEntity {
-                    let material = SimpleMaterial(color: .white, isMetallic: false)
-                    modelEntity.model?.materials = [material]
+                // 4. 确保材质操作在Metal兼容线程
+                if let modelEntity = asset as? ModelEntity {
+                    DispatchQueue.main.async {
+                        var material = SimpleMaterial()
+                        material.color = SimpleMaterial.BaseColor()
+                        modelEntity.model?.materials = [material]
+                    }
                 }
                 
+                // 5. 主线程添加锚点
                 DispatchQueue.main.async {
-                    let anchor = AnchorEntity(world: [0, 0, -1]) // 固定位置
-                    anchor.addChild(entity)
-                    arView.scene.addAnchor(anchor)
+                    let anchor = AnchorEntity(world: [0, 0, -1])
+                    anchor.children.append(asset) // 使用线程安全的添加方式
                     
-                    // 延迟启动AR会话
+                    // 延迟0.5秒确保场景就绪
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        arView.session.run(config, options: [.resetTracking])
+                        arView.scene.addAnchor(anchor)
                     }
                 }
             } catch {
                 DispatchQueue.main.async {
-                    self.errorMessage = "模型加载失败: \(error.localizedDescription)"
-                    print("‼️ 详细错误: \(error)")
-                }
+                    print("模型加载致命错误: \(error)")
+                    // 安全处理错误
+                    arView.session.pause()
+                    self.errorMessage = "模型加载失败，请尝试其他文件"
             }
         }
-        
-        return arView
+        #endif
+    }
     }
     
     func updateUIView(_ uiView: ARView, context: Context) {}
