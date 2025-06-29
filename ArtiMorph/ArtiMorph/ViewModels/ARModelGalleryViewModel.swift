@@ -1,3 +1,4 @@
+// ARModelGalleryViewModel.swift (优化验证逻辑)
 //
 //  ARModelGalleryViewModel.swift
 //  ArtiMorph
@@ -11,19 +12,12 @@ import Combine
 import UniformTypeIdentifiers
 
 class ARModelGalleryViewModel: ObservableObject {
-    /// 本地USDZ模型列表
     @Published var models: [ARModel] = []
-    /// 当前选中的模型
     @Published var selectedModel: ARModel?
-    /// 是否显示模型详情
     @Published var showingModelDetail = false
-    /// 是否显示文件选择器
     @Published var showingFileImporter = false
-    /// 错误信息
     @Published var errorMessage: String?
-    /// 加载状态
     @Published var isLoading = false
-    /// AR 预览错误信息
     @Published var arErrorMessage: String?
 
     private var cancellables = Set<AnyCancellable>()
@@ -31,20 +25,15 @@ class ARModelGalleryViewModel: ObservableObject {
     private let modelsDirectory: URL
 
     init() {
-        // 获取应用文档目录
         guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
             fatalError("无法访问文档目录")
         }
         
-        // 创建模型存储目录
         modelsDirectory = documentsDirectory.appendingPathComponent("ARModels")
         try? fileManager.createDirectory(at: modelsDirectory, withIntermediateDirectories: true)
-        
-        // 加载本地模型
         loadLocalModels()
     }
 
-    /// 加载本地USDZ模型
     func loadLocalModels() {
         isLoading = true
         
@@ -60,7 +49,6 @@ class ARModelGalleryViewModel: ObservableObject {
                     return ARModel(id: UUID(), name: name, url: url)
                 }
                 
-                // 按修改日期排序（最新的在前）
                 let sortedModels = models.sorted { $0.modificationDate > $1.modificationDate }
                 
                 DispatchQueue.main.async {
@@ -76,12 +64,10 @@ class ARModelGalleryViewModel: ObservableObject {
         }
     }
 
-    /// 导入新模型
     func importModel() {
         showingFileImporter = true
     }
 
-    /// 处理导入的文件
     func handleFileImport(url: URL) {
         let validation = validateUSDZFile(url)
         guard validation.isValid else {
@@ -93,11 +79,9 @@ class ARModelGalleryViewModel: ObservableObject {
         
         DispatchQueue.global().async {
             do {
-                // 复制文件到应用沙盒
                 let destinationURL = self.modelsDirectory.appendingPathComponent(url.lastPathComponent)
                 
                 if self.fileManager.fileExists(atPath: destinationURL.path) {
-                    // 如果文件已存在，添加时间戳
                     let timestamp = Date().timeIntervalSince1970
                     let fileName = url.deletingPathExtension().lastPathComponent
                     let newFileName = "\(fileName)_\(timestamp).usdz"
@@ -108,7 +92,7 @@ class ARModelGalleryViewModel: ObservableObject {
                 }
                 
                 DispatchQueue.main.async {
-                    self.loadLocalModels() // 重新加载模型列表
+                    self.loadLocalModels()
                     self.isLoading = false
                 }
             } catch {
@@ -120,7 +104,6 @@ class ARModelGalleryViewModel: ObservableObject {
         }
     }
 
-    /// 删除模型
     func deleteModel(_ model: ARModel) {
         isLoading = true
         
@@ -141,13 +124,12 @@ class ARModelGalleryViewModel: ObservableObject {
         }
     }
 
-    /// 选择模型
     func selectModel(_ model: ARModel) {
         selectedModel = model
         showingModelDetail = true
     }
     
-    /// 验证 USDZ 文件有效性
+    // 优化后的模型验证方法
     func validateUSDZFile(_ url: URL) -> (isValid: Bool, error: String?) {
         // 1. 基础文件检查
         guard url.pathExtension.lowercased() == "usdz",
@@ -160,18 +142,16 @@ class ARModelGalleryViewModel: ObservableObject {
         do {
             let scene = try Entity.load(contentsOf: url)
             
-            // 检查多边形数量 - 使用更兼容的方式
-            if let modelEntity = scene as? ModelEntity,
-               let mesh = modelEntity.model?.mesh {
+            // 更健壮的多边形计数
+            if let modelEntity = scene as? ModelEntity {
                 var totalTriangles = 0
                 
-                for model in mesh.contents.models {
+                // 使用更可靠的遍历方法
+                for model in modelEntity.model?.mesh.contents.models ?? [] {
                     for part in model.parts {
-                        // 安全解包 triangleIndices
-                        if let triangleIndices = part.triangleIndices {
-                            totalTriangles += triangleIndices.count / 3
+                        if let indices = part.triangleIndices {
+                            totalTriangles += indices.count / 3
                         }
-                        // 如果 triangleIndices 为 nil，可以在这里处理错误或跳过
                     }
                 }
                 
@@ -186,4 +166,3 @@ class ARModelGalleryViewModel: ObservableObject {
         }
     }
 }
-

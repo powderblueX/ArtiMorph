@@ -1,3 +1,4 @@
+// ARModelGalleryView.swift (保持不变)
 //
 //  ARModelGalleryView.swift
 //  ArtiMorph
@@ -14,7 +15,6 @@ struct ARModelGalleryView: View {
     @State private var selectedModel: ARModel?
     @State private var showARView = false
     
-    // 网格布局
     private let columns = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16)
@@ -95,9 +95,6 @@ struct ARModelGalleryView: View {
         }
     }
 }
-
-// MARK: - 模型预览视图
-
 
 #Preview {
     ARModelGalleryView()

@@ -1,3 +1,4 @@
+// ARViewContainer.swift (核心修复)
 //
 //  ARViewContainer.swift
 //  ArtiMorph
@@ -13,83 +14,92 @@ struct ARViewContainer: UIViewRepresentable {
     let modelURL: URL
     @Binding var errorMessage: String?
     
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
     func makeUIView(context: Context) -> ARView {
-        let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
-        
-        // 1. 先同步配置AR会话
-        let config = ARWorldTrackingConfiguration()
-        config.planeDetection = []
-        arView.session.run(config)
-        
-        // 2. 安全加载模型
-        loadModelAsync(arView: arView)
-        
+        let arView = ARView(frame: .zero)
+        Task { await loadModelAsync(arView: arView) }
         return arView
     }
-
-    private func loadModelAsync(arView: ARView) {
-        // 使用专门的内存队列处理资源加载
-        let modelLoadingQueue = DispatchQueue(label: "com.artimorph.modelLoading", qos: .userInitiated)
-        
-        modelLoadingQueue.async {
-            // 检查是否在模拟器环境
-            #if targetEnvironment(simulator)
-            DispatchQueue.main.async {
-                self.errorMessage = "模拟器不支持3D模型加载\n请使用真机体验AR功能"
+    
+    private func loadModelAsync(arView: ARView) async {
+        do {
+            let model = try await ModelEntity(contentsOf: modelURL)
+            await MainActor.run {
+                configureScene(arView: arView, model: model)
             }
-            return
-            #else
-            do {
-                // 3. 使用安全加载方式
-                let asset = try Entity.load(contentsOf: self.modelURL)
-                
-                // 4. 确保材质操作在Metal兼容线程
-                if let modelEntity = asset as? ModelEntity {
-                    DispatchQueue.main.async {
-                        var material = SimpleMaterial()
-                        material.color = SimpleMaterial.BaseColor()
-                        modelEntity.model?.materials = [material]
-                    }
-                }
-                
-                // 5. 主线程添加锚点
-                DispatchQueue.main.async {
-                    let anchor = AnchorEntity(world: [0, 0, -1])
-                    anchor.children.append(asset) // 使用线程安全的添加方式
-                    
-                    // 延迟0.5秒确保场景就绪
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        arView.scene.addAnchor(anchor)
-                    }
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    print("模型加载致命错误: \(error)")
-                    // 安全处理错误
-                    arView.session.pause()
-                    self.errorMessage = "模型加载失败，请尝试其他文件"
+        } catch {
+            await MainActor.run {
+                errorMessage = "模型加载失败: \(error.localizedDescription)"
             }
         }
+    }
+    
+    @MainActor
+    private func configureScene(arView: ARView, model: ModelEntity) {
+        model.scale = [0.5, 0.5, 0.5]
+        let anchor = AnchorEntity()
+        anchor.addChild(model)
+        
+        #if targetEnvironment(simulator)
+        configureSimulatorScene(arView: arView, anchor: anchor, model: model)
+        #else
+        configureDeviceScene(arView: arView, anchor: anchor, model: model)
         #endif
     }
+    
+    @MainActor
+    private func configureSimulatorScene(arView: ARView, anchor: AnchorEntity, model: ModelEntity) {
+        // 1. 创建带碰撞组件的相机控制实体
+        let cameraControl = ModelEntity()
+        cameraControl.components[CollisionComponent.self] = CollisionComponent(
+            shapes: [.generateBox(size: [0.1, 0.1, 0.1])]
+        )
+        
+        // 2. 添加相机到实体
+        let camera = PerspectiveCamera()
+        cameraControl.addChild(camera)
+        
+        // 3. 定位控制点
+        let cameraPivot = AnchorEntity(world: .zero)
+        cameraPivot.addChild(cameraControl)
+        arView.scene.addAnchor(cameraPivot)
+        
+        // 4. 初始相机位置
+        cameraControl.position = [0, 0, 2]
+        camera.look(at: [0, 0, 0], from: [0, 0, 2], relativeTo: nil)
+        
+        // 5. 添加相机控制手势
+        arView.installGestures(
+            [.rotation, .translation],
+            for: cameraControl
+        )
+        
+        // 6. 配置模型交互 (关键部分)
+        model.generateCollisionShapes(recursive: true)
+        arView.installGestures(
+            [.rotation, .translation, .scale],
+            for: model
+        )
+        
+        // 7. 添加模型
+        arView.scene.addAnchor(anchor)
+        arView.cameraMode = .nonAR
+        
+        // 8. 调试信息（可选）
+        print("模拟器场景配置完成")
+        //print("模型手势已启用: \(model.hasCollision)")
+    }
+    
+    @MainActor
+    private func configureDeviceScene(arView: ARView, anchor: AnchorEntity, model: ModelEntity) {
+        let config = ARWorldTrackingConfiguration()
+        config.planeDetection = [.horizontal, .vertical]
+        config.environmentTexturing = .automatic
+        arView.session.run(config)
+        
+        model.generateCollisionShapes(recursive: true)
+        arView.installGestures([.all], for: model)
+        arView.scene.addAnchor(anchor)
     }
     
     func updateUIView(_ uiView: ARView, context: Context) {}
-    
-    class Coordinator: NSObject, ARSessionDelegate {
-        var parent: ARViewContainer
-        weak var arView: ARView?
-        
-        init(_ parent: ARViewContainer) {
-            self.parent = parent
-        }
-        
-        func session(_ session: ARSession, didFailWithError error: Error) {
-            print("AR Session Failed: \(error)")
-        }
-    }
 }
