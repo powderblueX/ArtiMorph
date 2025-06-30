@@ -27,7 +27,7 @@ struct CanvasListView: View {
     var body: some View {
         ZStack{
             // 背景
-            FlowingGradientBackgroundView(Color_1: Color.white.opacity(0.5), Color_2: Color.gray.opacity(0.7), duration: 5)
+            FlowingGradientBackgroundView(Color_1: Color.white.opacity(0.9), Color_2: Color.gray.opacity(0.1), duration: 5)
             .edgesIgnoringSafeArea(.all)
             
             VStack {

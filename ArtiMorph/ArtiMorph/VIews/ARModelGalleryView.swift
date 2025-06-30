@@ -13,7 +13,6 @@ import UniformTypeIdentifiers
 struct ARModelGalleryView: View {
     @StateObject private var viewModel = ARModelGalleryViewModel()
     @State private var selectedModel: ARModel?
-    @State private var showARView = false
     
     private let columns = [
         GridItem(.flexible(), spacing: 16),
@@ -22,6 +21,7 @@ struct ARModelGalleryView: View {
 
     var body: some View {
         ZStack {
+            // 背景视图
             FlowingGradientBackgroundView(
                 Color_1: Color.blue.opacity(0.5),
                 Color_2: Color.mint.opacity(0.7),
@@ -29,14 +29,41 @@ struct ARModelGalleryView: View {
             )
             .edgesIgnoringSafeArea(.all)
             
+            // 主内容
             mainContent
                 .navigationTitle("3D模型库")
                 .toolbar { toolbarContent }
                 .fileImporter(
-                    isPresented: $viewModel.showingFileImporter,
-                    allowedContentTypes: [UTType.usdz],
-                    allowsMultipleSelection: false
-                ) { handleFileImport(result: $0) }
+                            isPresented: $viewModel.showingFileImporter,
+                            allowedContentTypes: [UTType.usdz],
+                            allowsMultipleSelection: false
+                ) { result in
+                    DispatchQueue.main.async {
+                        switch result {
+                        case .success(let urls):
+                            guard let url = urls.first else { return }
+                            
+                            // 获取安全访问权限
+                            let accessed = url.startAccessingSecurityScopedResource()
+                            defer {
+                                if accessed {
+                                    url.stopAccessingSecurityScopedResource()
+                                }
+                            }
+                            
+                            if accessed {
+                                viewModel.handleFileImport(url: url)
+                            } else {
+                                viewModel.errorMessage = "无法获取文件访问权限"
+                                viewModel.isLoading = false
+                            }
+                            
+                        case .failure(let error):
+                            viewModel.errorMessage = "导入失败: \(error.localizedDescription)"
+                            viewModel.isLoading = false
+                        }
+                    }
+                }
                 .sheet(item: $selectedModel) { model in
                     ARModelPreviewView(model: model)
                 }
@@ -47,9 +74,9 @@ struct ARModelGalleryView: View {
                         set: { if !$0 { viewModel.errorMessage = nil } }
                     )
                 ) {
-                    Button("确定") {}
+                    Button("确定", role: .cancel) {}
                 } message: {
-                    Text(viewModel.errorMessage ?? "")
+                    Text(viewModel.errorMessage ?? "未知错误")
                 }
         }
     }
@@ -68,6 +95,13 @@ struct ARModelGalleryView: View {
                         ModelCardView(model: model)
                             .onTapGesture {
                                 selectedModel = model
+                            }
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    viewModel.deleteModel(model)
+                                } label: {
+                                    Label("删除", systemImage: "trash")
+                                }
                             }
                     }
                 }
@@ -89,13 +123,23 @@ struct ARModelGalleryView: View {
         switch result {
         case .success(let urls):
             guard let url = urls.first else { return }
-            viewModel.handleFileImport(url: url)
+            
+            // 获取安全访问权限
+            let accessed = url.startAccessingSecurityScopedResource()
+            defer {
+                if accessed {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+            
+            if accessed {
+                viewModel.handleFileImport(url: url)
+            } else {
+                viewModel.errorMessage = "无法获取文件访问权限"
+            }
+            
         case .failure(let error):
             viewModel.errorMessage = "导入失败: \(error.localizedDescription)"
         }
     }
-}
-
-#Preview {
-    ARModelGalleryView()
 }

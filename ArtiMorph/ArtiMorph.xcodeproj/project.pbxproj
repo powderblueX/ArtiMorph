@@ -29,9 +29,22 @@
 		84AB3B372E112EA900E6DD0B /* ArtiMorphUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ArtiMorphUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		841D50EB2E1274D800D4232D /* Exceptions for "ArtiMorph" folder in "ArtiMorph" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 84AB3B1C2E112EA800E6DD0B /* ArtiMorph */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		84AB3B1F2E112EA800E6DD0B /* ArtiMorph */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				841D50EB2E1274D800D4232D /* Exceptions for "ArtiMorph" folder in "ArtiMorph" target */,
+			);
 			path = ArtiMorph;
 			sourceTree = "<group>";
 		};
@@ -399,8 +412,12 @@
 				DEVELOPMENT_TEAM = W545Y894RD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ArtiMorph/Info.plist;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要相机权限来展示AR内容\"";
+				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "需要访问文档目录来存储3D模型";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "需要麦克风进行AR空间音效";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要访问相册来选择USDZ文件";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -431,8 +448,12 @@
 				DEVELOPMENT_TEAM = W545Y894RD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ArtiMorph/Info.plist;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要相机权限来展示AR内容\"";
+				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "需要访问文档目录来存储3D模型";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "需要麦克风进行AR空间音效";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要访问相册来选择USDZ文件";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
