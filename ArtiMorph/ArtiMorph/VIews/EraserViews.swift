@@ -25,11 +25,11 @@ struct EraserSizeSlider: View {
     var body: some View {
         VStack(spacing: 8) {
             // 显示当前模式
-            if case .eraser(let mode) = viewModel.drawingTool.selectedToolType {
-                Text(mode == .pixel ? "像素擦除" : "整笔擦除")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-            }
+//            if case .eraser(let mode) = viewModel.drawingTool.selectedToolType {
+//                Text(mode == .pixel ? "像素擦除" : "整笔擦除")
+//                    .font(.headline)
+//                    .foregroundColor(.primary)
+//            }
             
             // 大小调节滑块
             HStack {

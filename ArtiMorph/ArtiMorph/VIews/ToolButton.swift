@@ -23,8 +23,8 @@ struct ToolButton: View {
                     .font(.caption)
                     .foregroundColor(configuration.isSelected() ? .blue : .gray)
             }
-            .frame(width: 60)
-            .padding(.vertical, 8)
+            .frame(width: 50)
+            .padding(.vertical, 1)
             .background(
                 RoundedRectangle(cornerRadius: 10)
                     .fill(configuration.isSelected() ? Color.blue.opacity(0.1) : Color.clear)

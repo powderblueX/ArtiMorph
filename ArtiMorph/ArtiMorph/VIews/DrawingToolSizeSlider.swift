@@ -9,11 +9,11 @@ struct DrawingToolSizeSlider: View {
     var body: some View {
         VStack(spacing: 8) {
             // 显示当前工具名称和大小调节滑块
-            if drawingTool.selectedToolType.isDrawingTool {
-                Text(drawingTool.selectedToolType.name)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-            }
+//            if drawingTool.selectedToolType.isDrawingTool {
+//                Text(drawingTool.selectedToolType.name)
+//                    .font(.headline)
+//                    .foregroundColor(.primary)
+//            }
             
             // 大小调节滑块
             HStack {

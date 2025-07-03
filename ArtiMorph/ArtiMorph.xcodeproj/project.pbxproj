@@ -414,7 +414,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ArtiMorph/Info.plist;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "需要相机权限来展示AR内容\"";
+				INFOPLIST_KEY_NSCameraUsageDescription = "需要相机权限来展示AR内容";
 				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "需要访问文档目录来存储3D模型";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "需要麦克风进行AR空间音效";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要访问相册来选择USDZ文件";
@@ -450,7 +450,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ArtiMorph/Info.plist;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "需要相机权限来展示AR内容\"";
+				INFOPLIST_KEY_NSCameraUsageDescription = "需要相机权限来展示AR内容";
 				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "需要访问文档目录来存储3D模型";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "需要麦克风进行AR空间音效";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要访问相册来选择USDZ文件";

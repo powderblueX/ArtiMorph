@@ -20,6 +20,9 @@ struct CanvasView: View {
     @State private var showClearConfirmation = false
     /// 是否显示缩放提示
     @State private var showZoomHint = false
+    /// 新增状态控制展开/收起
+    @State private var showSizeSlider = false
+    @State private var showColorPicker = false
     
     // MARK: - 视图主体
     
@@ -41,7 +44,7 @@ struct CanvasView: View {
                         showEraserIndicator = true
                     }
                 },
-                onTouchEnded: { 
+                onTouchEnded: {
                     showEraserIndicator = false
                 }
             )
@@ -55,55 +58,143 @@ struct CanvasView: View {
                         viewModel.scale = value
                     }
             )
-
+            
             // 左上角操作按钮
-            HStack(spacing: 15) {
-                Button(action: { viewModel.undo() }) {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.title)
-                        .foregroundColor(.primary)
-                        .padding(10)
-                        .background(Color.white.opacity(0.8))
-                        .cornerRadius(10)
-                        .shadow(radius: 3)
+            HStack(alignment: .center, spacing: 0) {
+                // 第一组：操作按钮（左对齐）
+                HStack(spacing: 15) {
+                    Button(action: { viewModel.undo() }) {
+                        Image(systemName: "arrow.uturn.backward")
+                            .font(.title3)
+                            .foregroundColor(.primary)
+                            .padding(1)
+                            .background(Color.white.opacity(0.8))
+                            .cornerRadius(10)
+                            .shadow(radius: 3)
+                    }
+                    Button(action: { viewModel.redo() }) {
+                        Image(systemName: "arrow.uturn.forward")
+                            .font(.title3)
+                            .foregroundColor(.primary)
+                            .padding(1)
+                            .background(Color.white.opacity(0.8))
+                            .cornerRadius(10)
+                            .shadow(radius: 3)
+                    }
+                    Button(action: { showClearConfirmation = true }) {
+                        Image(systemName: "trash")
+                            .font(.title3)
+                            .foregroundColor(.primary)
+                            .padding(1)
+                            .background(Color.white.opacity(0.8))
+                            .cornerRadius(10)
+                            .shadow(radius: 3)
+                    }
                 }
-                Button(action: { viewModel.redo() }) {
-                    Image(systemName: "arrow.uturn.forward")
-                        .font(.title)
-                        .foregroundColor(.primary)
-                        .padding(10)
-                        .background(Color.white.opacity(0.8))
-                        .cornerRadius(10)
-                        .shadow(radius: 3)
+                
+                Spacer()
+                
+                // 第二组：绘画工具（居中）
+                HStack(spacing: 15) {
+                    // 画笔选择器
+                    ToolbarView(viewModel: viewModel)
+                    
+                    // 橡皮擦大小滑块
+                    Button(action: {
+                        withAnimation {
+                            showSizeSlider.toggle()
+                            // 确保颜色选择器关闭
+                            showColorPicker = false
+                        }
+                    }) {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.title3)
+                            .foregroundColor(.primary)
+                            .padding(1)
+                            .background(Color.white.opacity(0.8))
+                            .cornerRadius(10)
+                            .shadow(radius: 3)
+                    }
+                    
+                    // 颜色选择按钮（替换原来的颜色选择器）
+                    Button(action: {
+                        withAnimation {
+                            showColorPicker.toggle()
+                            // 确保大小滑块关闭
+                            showSizeSlider = false
+                        }
+                    }) {
+                        Image(systemName: "paintpalette")
+                            .font(.title3)
+                            .foregroundColor(.primary)
+                            .padding(1)
+                            .background(Color.white.opacity(0.8))
+                            .cornerRadius(10)
+                            .shadow(radius: 3)
+                    }
                 }
-                Button(action: { showClearConfirmation = true }) {
-                    Image(systemName: "trash")
-                        .font(.title)
-                        .foregroundColor(.primary)
-                        .padding(10)
-                        .background(Color.white.opacity(0.8))
-                        .cornerRadius(10)
-                        .shadow(radius: 3)
+                
+                Spacer()
+                
+                // 第三组：3D转换（右对齐）
+                HStack(spacing: 15) {
+                    Button(action: { viewModel.isSelectionActive = true }) {
+                        Image(systemName: "cube.transparent")
+                            .font(.title)
+                            .foregroundColor(.primary)
+                            .padding(1)
+                            .background(Color.white.opacity(0.8))
+                            .cornerRadius(10)
+                            .shadow(radius: 3)
+                    }
                 }
             }
-            .padding(20)
+            .padding(.horizontal, 20)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-
-            // 右上角2D->3D按钮
-            HStack {
-                Button(action: { viewModel.isSelectionActive = true }) {
-                    Text("2D->3D")
-                        .font(.title)
-                        .foregroundColor(.primary)
-                        .padding(10)
-                        .background(Color.white.opacity(0.8))
-                        .cornerRadius(10)
-                        .shadow(radius: 3)
+            
+            // 在底部添加展开的面板
+            VStack {
+                Spacer()
+                
+                // 大小滑块面板
+                if showSizeSlider {
+                    VStack {
+                        if case .eraser = viewModel.drawingTool.selectedToolType {
+                            EraserSizeSlider(viewModel: viewModel)
+                                .padding()
+                        } else if viewModel.drawingTool.selectedToolType.isDrawingTool {
+                            DrawingToolSizeSlider(drawingTool: viewModel.drawingTool) { size in
+                                viewModel.drawingTool.setWidth(size)
+                            }
+                            .padding()
+                        }
+                    }
+                    .background(Color.white.opacity(0.9))
+                    .cornerRadius(15)
+                    .shadow(radius: 5)
+                    .transition(.move(edge: .bottom))
+                    .padding(.bottom, 20)
+                }
+                
+                // 颜色选择器面板
+                if showColorPicker {
+                    ColorPickerView(
+                        colors: viewModel.colors,
+                        selectedColor: viewModel.drawingTool.color,
+                        onColorSelected: { color in
+                            viewModel.setColor(color)
+                            // 可以选择自动关闭
+                            // showColorPicker = false
+                        }
+                    )
+                    .background(Color.white.opacity(0.9))
+                    .cornerRadius(15)
+                    .shadow(radius: 5)
+                    .transition(.move(edge: .bottom))
+                    .padding(.bottom, 20)
                 }
             }
-            .padding(20)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-
+            
             // 清空确认提示框
             if showClearConfirmation {
                 CustomAlertView(
@@ -129,7 +220,7 @@ struct CanvasView: View {
                     .position(indicatorPosition)
                     .allowsHitTesting(false)
             }
-
+            
             // 2D->3D选择框
             SelectionFrameView(
                 viewModel: viewModel.selectionFrameVM,
@@ -147,54 +238,16 @@ struct CanvasView: View {
                     .transition(.opacity)
             }
             
-            // UI控制层
-            VStack {
-                Spacer()
-                
-                VStack(spacing: 16) {
-                    // 橡皮擦大小滑块
-                    if case .eraser(_) = viewModel.drawingTool.selectedToolType {
-                        EraserSizeSlider(viewModel: viewModel)
-                            .padding(.horizontal)
-                            .transition(.opacity)
-                            .animation(.easeInOut, value: viewModel.drawingTool.selectedToolType)
-                    }
-                    
-                    // 绘画工具大小滑块
-                    if viewModel.drawingTool.selectedToolType.isDrawingTool {
-                        DrawingToolSizeSlider(drawingTool: viewModel.drawingTool, setDrawingToolSize: { size in
-                            viewModel.drawingTool.setWidth(size)
-                        })
-                        .padding(.horizontal)
-                        .transition(.opacity)
-                        .animation(.easeInOut, value: viewModel.drawingTool.selectedToolType)
-                    }
-                    
-                    // 工具栏
-                    ToolbarView(viewModel: viewModel)
-                    
-                    // 颜色选择器
-                    if viewModel.drawingTool.selectedToolType.isDrawingTool {
-                        ColorPickerView(
-                            colors: viewModel.colors,
-                            selectedColor: viewModel.drawingTool.color,
-                            onColorSelected: viewModel.setColor
-                        )
-                    }
-                }
-                .padding(.bottom, 30)
-            }
-            
             if showClearConfirmation {
                 Color.black.opacity(0.5)
                     .edgesIgnoringSafeArea(.all)
                     .zIndex(10)
-
+                
                 CustomAlertView(
                     configuration: AlertConfiguration(
                         title: "清空画布",
                         message: "确定要清空当前画布吗？此操作不可撤销。",
-                        primaryAction: { 
+                        primaryAction: {
                             viewModel.clearCanvas()
                             showClearConfirmation = false
                         },
@@ -211,3 +264,6 @@ struct CanvasView: View {
     }
 }
 
+#Preview {
+    CanvasView(canvas: CanvasData(name: "123", drawing: PKDrawing()))
+}

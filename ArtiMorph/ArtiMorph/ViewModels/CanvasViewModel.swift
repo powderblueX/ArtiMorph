@@ -70,7 +70,7 @@ class CanvasViewModel: ObservableObject {
     }
     
 
-    @Published var colors: [Color] = [.black, .blue, .red, .green, .yellow, .purple, .orange, .pink]
+    @Published var colors: [Color] = [.black, .blue, .red, .green, .yellow, .purple, .orange, .pink, .brown, .cyan, .mint, .primary, .indigo, .teal, .secondary, .gray]
     
     func setColor(_ color: Color) {
         drawingTool.setColor(color)

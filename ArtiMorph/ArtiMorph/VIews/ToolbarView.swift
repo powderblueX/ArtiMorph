@@ -18,7 +18,7 @@ struct ToolbarView: View {
     // MARK: - 视图主体
     
     var body: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 5) {
             // 绘图工具按钮组
             DrawingToolButtonView(drawingTool: drawingTool, toolType: .pen, setTool: { viewModel.drawingTool.setToolType($0) })
             DrawingToolButtonView(drawingTool: drawingTool, toolType: .pencil, setTool: { viewModel.drawingTool.setToolType($0) })
@@ -34,8 +34,7 @@ struct ToolbarView: View {
                 viewModel.drawingTool.setToolType(newType)
             }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 5)
         .background(Color.white)
         .cornerRadius(15)
         .shadow(radius: 5)

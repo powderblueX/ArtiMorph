@@ -64,7 +64,7 @@ struct ARModelGalleryView: View {
                         }
                     }
                 }
-                .sheet(item: $selectedModel) { model in
+                .fullScreenCover(item: $selectedModel) { model in
                     ARModelPreviewView(model: model)
                 }
                 .alert(

@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import RealityKit
 
 struct ARModelPreviewView: View {
     let model: ARModel
@@ -15,13 +16,12 @@ struct ARModelPreviewView: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
-        NavigationStack {
-            ZStack {
+        ZStack {
+            Group {
                 if let error = errorMessage {
                     ErrorView(error: error)
                 } else {
-                    ARViewContainer(modelURL: model.url, errorMessage: $errorMessage)
-                        .edgesIgnoringSafeArea(.all)
+                    USDZView(modelFile: model.url)
                 }
                 
                 if isLoading {
@@ -30,16 +30,34 @@ struct ARModelPreviewView: View {
                 }
             }
             .navigationTitle(model.name)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("关闭") { dismiss() }
+            .overlay {
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(2)
                 }
             }
             .onAppear {
-                // 3秒后隐藏加载指示器（可根据实际加载时间调整）
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     isLoading = false
                 }
+            }
+            
+            // 返回按钮
+            VStack {
+                Spacer()
+                HStack {
+                    Button(action: {
+                        dismiss() // 调用 dismiss 关闭全屏模态
+                    }) {
+                        Image(systemName: "chevron.backward")
+                            .padding()
+                            .background(Color.black.opacity(0.5))
+                            .clipShape(Circle())
+                    }
+                    .padding()
+                    Spacer()
+                }
+                Spacer()
             }
         }
     }
@@ -49,23 +67,31 @@ private struct ErrorView: View {
     let error: String
     
     var body: some View {
-        VStack {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 50))
-                .padding()
+        VStack(spacing: 20) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.yellow)
             
-            Text("加载失败")
-                .font(.title)
-            
-            Text(error)
-                .padding()
-                .multilineTextAlignment(.center)
-            
-            #if targetEnvironment(simulator)
-            Text("模拟器仅支持基础预览")
-                .foregroundColor(.secondary)
-            #endif
+            VStack(spacing: 10) {
+                Text("模型加载失败")
+                    .font(.title2.bold())
+                    .foregroundColor(.white)
+                
+                Text(error)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                    .foregroundColor(.white)
+                
+                #if targetEnvironment(simulator)
+                Divider()
+                    .padding(.vertical, 8)
+                Text("模拟器仅支持基础预览")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                #endif
+            }
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
     }
 }
