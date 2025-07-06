@@ -37,7 +37,7 @@ struct SplashView: View {
                             .font(.system(size: 80))
                             .foregroundColor(.white)
                         
-                        Text("ArtiMorph")
+                        Text("神笔·绘境")
                             .font(.largeTitle)
                             .foregroundColor(.white.opacity(0.8))
                     }

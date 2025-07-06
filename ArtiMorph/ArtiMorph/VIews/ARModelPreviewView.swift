@@ -23,19 +23,8 @@ struct ARModelPreviewView: View {
                 } else {
                     USDZView(modelFile: model.url)
                 }
-                
-                if isLoading {
-                    ProgressView()
-                        .scaleEffect(2)
-                }
             }
             .navigationTitle(model.name)
-            .overlay {
-                if isLoading {
-                    ProgressView()
-                        .scaleEffect(2)
-                }
-            }
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     isLoading = false
@@ -46,18 +35,16 @@ struct ARModelPreviewView: View {
             VStack {
                 Spacer()
                 HStack {
-                    Button(action: {
-                        dismiss() // 调用 dismiss 关闭全屏模态
-                    }) {
-                        Image(systemName: "chevron.backward")
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "arrow.left")
+                            .font(.title)
                             .padding()
-                            .background(Color.black.opacity(0.5))
+                            .background(Color.white.opacity(0.7))
                             .clipShape(Circle())
                     }
                     .padding()
                     Spacer()
                 }
-                Spacer()
             }
         }
     }

@@ -13,6 +13,11 @@ import UniformTypeIdentifiers
 struct ARModelGalleryView: View {
     @StateObject private var viewModel = ARModelGalleryViewModel()
     @State private var selectedModel: ARModel?
+    var onSelect: ((ARModel) -> Void)?
+
+    init(onSelect: ((ARModel) -> Void)? = nil) {
+        self.onSelect = onSelect
+    }
     
     private let columns = [
         GridItem(.flexible(), spacing: 16),
@@ -34,9 +39,9 @@ struct ARModelGalleryView: View {
                 .navigationTitle("3D模型库")
                 .toolbar { toolbarContent }
                 .fileImporter(
-                            isPresented: $viewModel.showingFileImporter,
-                            allowedContentTypes: [UTType.usdz],
-                            allowsMultipleSelection: false
+                    isPresented: $viewModel.showingFileImporter,
+                    allowedContentTypes: [UTType.usdz],
+                    allowsMultipleSelection: false
                 ) { result in
                     DispatchQueue.main.async {
                         switch result {
@@ -94,7 +99,11 @@ struct ARModelGalleryView: View {
                     ForEach(viewModel.models) { model in
                         ModelCardView(model: model)
                             .onTapGesture {
-                                selectedModel = model
+                                if let onSelect = onSelect {
+                                    onSelect(model)
+                                } else {
+                                    selectedModel = model
+                                }
                             }
                             .contextMenu {
                                 Button(role: .destructive) {

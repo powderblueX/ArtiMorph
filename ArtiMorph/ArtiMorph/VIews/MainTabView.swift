@@ -23,6 +23,13 @@ struct MainTabView: View {
             .tabItem {
                 Label("模型库", systemImage: "cube")
             }
+
+            NavigationStack{
+                ARSpaceView()
+            }
+            .tabItem {
+                Label("AR空间", systemImage: "arkit")
+            }
         }
     }
 }

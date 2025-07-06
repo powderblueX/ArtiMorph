@@ -13,7 +13,7 @@ struct OnboardingContentView: View {
     var body: some View {
         VStack(spacing: 30) {
             // 标题
-            Text("ArtiMorph")
+            Text("神笔·绘境")
                 .font(.system(size: 48, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)

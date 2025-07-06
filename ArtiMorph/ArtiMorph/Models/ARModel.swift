@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ARModel: Identifiable {
+struct ARModel: Identifiable, Equatable {
     let id: UUID
     let name: String
     let url: URL

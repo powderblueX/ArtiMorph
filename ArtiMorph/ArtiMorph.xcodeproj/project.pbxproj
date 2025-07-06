@@ -24,7 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		84AB3B1D2E112EA800E6DD0B /* ArtiMorph.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ArtiMorph.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		84AB3B1D2E112EA800E6DD0B /* 神笔·绘境.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "神笔·绘境.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		84AB3B2D2E112EA900E6DD0B /* ArtiMorphTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ArtiMorphTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		84AB3B372E112EA900E6DD0B /* ArtiMorphUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ArtiMorphUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -98,7 +98,7 @@
 		84AB3B1E2E112EA800E6DD0B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				84AB3B1D2E112EA800E6DD0B /* ArtiMorph.app */,
+				84AB3B1D2E112EA800E6DD0B /* 神笔·绘境.app */,
 				84AB3B2D2E112EA900E6DD0B /* ArtiMorphTests.xctest */,
 				84AB3B372E112EA900E6DD0B /* ArtiMorphUITests.xctest */,
 			);
@@ -127,7 +127,7 @@
 			packageProductDependencies = (
 			);
 			productName = ArtiMorph;
-			productReference = 84AB3B1D2E112EA800E6DD0B /* ArtiMorph.app */;
+			productReference = 84AB3B1D2E112EA800E6DD0B /* 神笔·绘境.app */;
 			productType = "com.apple.product-type.application";
 		};
 		84AB3B2C2E112EA900E6DD0B /* ArtiMorphTests */ = {
@@ -416,6 +416,7 @@
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要相机权限来展示AR内容";
 				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "需要访问文档目录来存储3D模型";
+				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "需要访问下载目录来导入3D模型";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "需要麦克风进行AR空间音效";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要访问相册来选择USDZ文件";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -430,7 +431,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.ArtiMorph";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "神笔·绘境";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -452,6 +453,7 @@
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要相机权限来展示AR内容";
 				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "需要访问文档目录来存储3D模型";
+				INFOPLIST_KEY_NSDownloadsFolderUsageDescription = "需要访问下载目录来导入3D模型";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "需要麦克风进行AR空间音效";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要访问相册来选择USDZ文件";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -466,7 +468,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.apple-samplecode.ArtiMorph";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "神笔·绘境";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

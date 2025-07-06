@@ -10,10 +10,10 @@ import RealityKit
 import QuickLook
 import ARKit
 
-class ObjectModeCoordinator: NSObject, QLPreviewControllerDataSource {
-    let parent: ObjectModeView
+class USDZViewCoordinator: NSObject, QLPreviewControllerDataSource {
+    let parent: USDZView
     
-    init(_ parent: ObjectModeView) {
+    init(_ parent: USDZView) {
         self.parent = parent
     }
     

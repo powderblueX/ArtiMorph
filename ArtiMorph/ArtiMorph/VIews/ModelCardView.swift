@@ -10,7 +10,8 @@ import SwiftUI
 struct ModelCardView: View {
     let model: ARModel
     @State private var thumbnail: UIImage?
-
+    private static var thumbnailCache = [URL: UIImage]()
+    
     var body: some View {
         VStack {
             ZStack {
@@ -48,19 +49,24 @@ struct ModelCardView: View {
         }
     }
     
-    // ModelCardView.swift
+    
     private func loadThumbnail() {
+        // 检查缓存
+        if let cachedImage = Self.thumbnailCache[model.url] {
+            self.thumbnail = cachedImage
+            return
+        }
+        
         print("正在加载缩略图: \(model.url.path)")
         
-        // 检查文件是否存在
-        let fileExists = FileManager.default.fileExists(atPath: model.url.path)
-        print("文件存在: \(fileExists)")
-        
         DispatchQueue.global().async {
-            if let image = ThumbnailGenerator.generateThumbnail(for: model.url, size: CGSize(width: 300, height: 300)) {
+            if let image = ThumbnailGenerator.generateThumbnail(for: self.model.url, size: CGSize(width: 300, height: 300)) {
+                // 缓存并更新UI
+                Self.thumbnailCache[self.model.url] = image
+                
                 DispatchQueue.main.async {
                     self.thumbnail = image
-                    print("缩略图加载成功")
+                    print("✅ 缩略图加载成功")
                 }
             } else {
                 print("❌ 缩略图生成失败")

@@ -24,6 +24,9 @@ struct CanvasView: View {
     @State private var showSizeSlider = false
     @State private var showColorPicker = false
     
+    // 添加安全区域获取
+//    @Environment(\.safeAreaInsets) private var safeAreaInsets
+    
     // MARK: - 视图主体
     
     init(canvas: CanvasData) {
@@ -67,7 +70,7 @@ struct CanvasView: View {
                         Image(systemName: "arrow.uturn.backward")
                             .font(.title3)
                             .foregroundColor(.primary)
-                            .padding(1)
+                            .padding(5)
                             .background(Color.white.opacity(0.8))
                             .cornerRadius(10)
                             .shadow(radius: 3)
@@ -76,7 +79,16 @@ struct CanvasView: View {
                         Image(systemName: "arrow.uturn.forward")
                             .font(.title3)
                             .foregroundColor(.primary)
-                            .padding(1)
+                            .padding(5)
+                            .background(Color.white.opacity(0.8))
+                            .cornerRadius(10)
+                            .shadow(radius: 3)
+                    }
+                    Button(action: { viewModel.saveCanvas() }) {
+                        Image(systemName: "square.and.arrow.down")
+                            .font(.title3)
+                            .foregroundColor(.primary)
+                            .padding(5)
                             .background(Color.white.opacity(0.8))
                             .cornerRadius(10)
                             .shadow(radius: 3)
@@ -85,7 +97,7 @@ struct CanvasView: View {
                         Image(systemName: "trash")
                             .font(.title3)
                             .foregroundColor(.primary)
-                            .padding(1)
+                            .padding(5)
                             .background(Color.white.opacity(0.8))
                             .cornerRadius(10)
                             .shadow(radius: 3)
@@ -99,7 +111,7 @@ struct CanvasView: View {
                     // 画笔选择器
                     ToolbarView(viewModel: viewModel)
                     
-                    // 橡皮擦大小滑块
+                    // 大小滑块
                     Button(action: {
                         withAnimation {
                             showSizeSlider.toggle()
@@ -110,7 +122,7 @@ struct CanvasView: View {
                         Image(systemName: "slider.horizontal.3")
                             .font(.title3)
                             .foregroundColor(.primary)
-                            .padding(1)
+                            .padding(5)
                             .background(Color.white.opacity(0.8))
                             .cornerRadius(10)
                             .shadow(radius: 3)
@@ -127,7 +139,7 @@ struct CanvasView: View {
                         Image(systemName: "paintpalette")
                             .font(.title3)
                             .foregroundColor(.primary)
-                            .padding(1)
+                            .padding(5)
                             .background(Color.white.opacity(0.8))
                             .cornerRadius(10)
                             .shadow(radius: 3)
@@ -138,7 +150,10 @@ struct CanvasView: View {
                 
                 // 第三组：3D转换（右对齐）
                 HStack(spacing: 15) {
-                    Button(action: { viewModel.isSelectionActive = true }) {
+                    Button(action: {
+                        // 显示2D预览sheet
+                        viewModel.show2D()
+                    }) {
                         Image(systemName: "cube.transparent")
                             .font(.title)
                             .foregroundColor(.primary)
@@ -221,13 +236,6 @@ struct CanvasView: View {
                     .allowsHitTesting(false)
             }
             
-            // 2D->3D选择框
-            SelectionFrameView(
-                viewModel: viewModel.selectionFrameVM,
-                onConfirm: viewModel.convert2DTo3D,
-                onCancel: { viewModel.selectionFrameVM.state.isActive = false }
-            )
-            
             // 缩放提示
             if showZoomHint {
                 ZoomHintView()
@@ -256,14 +264,230 @@ struct CanvasView: View {
                 )
                 .zIndex(20)
             }
+            
+            // 加载指示器
+            if viewModel.isConverting {
+                ZStack {
+                    Color.black.opacity(0.7)
+                        .edgesIgnoringSafeArea(.all)
+                        .onTapGesture {} // 阻止点击穿透
+                    
+                    VStack(spacing: 20) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(2)
+                        
+                        Text("正在转换为3D模型...")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        
+                        Text("这可能需要一些时间，请耐心等待，切勿切换或退出页面！")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                    .padding(30)
+                    .background(Color.black.opacity(0.5))
+                    .cornerRadius(15)
+                }
+            }
+            
+            if viewModel.showNetworkErrorAlert {
+                Color.black.opacity(0.5)
+                    .edgesIgnoringSafeArea(.all)
+                    .zIndex(200) // 确保在最上层
+                
+                VStack {
+                    Text("转换失败")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.bottom, 10)
+                    
+                    Text(viewModel.networkErrorDescription)
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+                    
+                    Button(action: {
+                        viewModel.showNetworkErrorAlert = false
+                    }) {
+                        Text("确定")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                    }
+                    .padding(.top, 20)
+                }
+                .padding(30)
+                .background(Color.black.opacity(0.7))
+                .cornerRadius(15)
+                .transition(.opacity)
+            }
+            
+            // 添加3D查看器弹窗
+            //            if viewModel.show3DViewer, let modelURL = viewModel.current3DModelURL {
+            //                Color.black.opacity(0.8)
+            //                    .edgesIgnoringSafeArea(.all)
+            //                    .onTapGesture {
+            //                        viewModel.show3DViewer = false
+            //                    }
+            //
+            //                VStack {
+            //                    HStack {
+            //                        Spacer()
+            //
+            //                        Button(action: {
+            //                            viewModel.show3DViewer = false
+            //                        }) {
+            //                            Image(systemName: "xmark.circle.fill")
+            //                                .font(.largeTitle)
+            //                                .foregroundColor(.white)
+            //                        }
+            //                    }
+            //                    .padding()
+            //
+            //                    Simple3DViewer(modelURL: modelURL)
+            //                        .frame(height: 500)
+            //                        .cornerRadius(20)
+            //                        .padding()
+            //
+            //                    Spacer()
+            //                }
+            //                .zIndex(21)
+            //                .transition(.opacity)
+            //
+            //                // 添加分享按钮
+            //                Button(action: {
+            //                    viewModel.shareUSDZFile(url: modelURL)
+            //                }) {
+            //                    Image(systemName: "square.and.arrow.up")
+            //                        .font(.title)
+            //                        .foregroundColor(.white)
+            //                        .padding(8)
+            //                        .background(Color.blue.opacity(0.8))
+            //                        .cornerRadius(10)
+            //                }
+            //                .padding(.bottom, 20)
+            //            }
+            
+            // 在 CanvasView.swift 中修改图片展示部分
+            //            if viewModel.show3DViewer, let imageURL = viewModel.current3DModelURL {
+            //                Color.black.opacity(0.8)
+            //                    .edgesIgnoringSafeArea(.all)
+            //                    .zIndex(20)
+            //                    .onTapGesture {
+            //                        viewModel.show3DViewer = false
+            //                    }
+            //
+            //                VStack {
+            //                    HStack {
+            //                        Spacer()
+            //
+            //                        Button(action: {
+            //                            viewModel.show3DViewer = false
+            //                        }) {
+            //                            Image(systemName: "xmark.circle.fill")
+            //                                .font(.largeTitle)
+            //                                .foregroundColor(.white)
+            //                        }
+            //                    }
+            //                    .padding()
+            //
+            //                    // 修改为更可靠的图片加载方式
+            //                    if FileManager.default.fileExists(atPath: imageURL.path) {
+            //                        if let imageData = try? Data(contentsOf: imageURL),
+            //                           let uiImage = UIImage(data: imageData) {
+            //                            Image(uiImage: uiImage)
+            //                                .resizable()
+            //                                .scaledToFit()
+            //                                .frame(height: 500)
+            //                                .cornerRadius(20)
+            //                                .padding()
+            //                                .background(Color.white) // 添加背景确保可见
+            //                                .border(Color.red, width: 2) // 临时添加边框帮助调试
+            //                        } else {
+            //                            Text("无法加载图片数据")
+            //                                .foregroundColor(.white)
+            //                                .frame(height: 500)
+            //                        }
+            //                    } else {
+            //                        Text("文件不存在: \(imageURL.lastPathComponent)")
+            //                            .foregroundColor(.white)
+            //                            .frame(height: 500)
+            //                    }
+            //
+            //                    Spacer()
+            //                }
+            //                .zIndex(21)
+            //                .transition(.opacity)
+            //
+            //                // 分享按钮
+            //                Button(action: {
+            //                    viewModel.shareUSDZFile(url: imageURL)
+            //                }) {
+            //                    Image(systemName: "square.and.arrow.up")
+            //                        .font(.title)
+            //                        .foregroundColor(.white)
+            //                        .padding(8)
+            //                        .background(Color.blue.opacity(0.8))
+            //                        .cornerRadius(10)
+            //                }
+            //                .padding(.bottom, 20)
+            //            }
         }
         .navigationBarTitle(canvas.name, displayMode: .inline)
+        // 2D预览sheet
+        .sheet(isPresented: $viewModel.show2DSheet) {
+            VStack(spacing: 20) {
+                Text("确认转换为3D模型")
+                    .font(.title)
+                    .fontWeight(.bold)
+                
+                if let image = viewModel.fullCanvasImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .cornerRadius(10)
+                        .shadow(radius: 5)
+                } else {
+                    Text("无法加载画布图像")
+                        .foregroundColor(.red)
+                }
+                
+                Button(action: {
+                    // 立即关闭sheet
+                    viewModel.show2DSheet = false
+                    // 开始转换
+                    viewModel.convert2DTo3D()
+                }) {
+                    Text("开始转换")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                        .shadow(radius: 3)
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(.systemBackground))
+        }
+//        .onAppear {
+//            // 将安全区域传递给ViewModel
+//            viewModel.safeAreaInsets = safeAreaInsets
+//        }
         .onDisappear {
             viewModel.saveCanvas()
+            viewModel.cleanupTempFiles()
         }
     }
 }
 
-#Preview {
-    CanvasView(canvas: CanvasData(name: "123", drawing: PKDrawing()))
-}
+//#Preview {
+//    CanvasView(canvas: CanvasData(name: "123", drawing: PKDrawing()))
+//}
